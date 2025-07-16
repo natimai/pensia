@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>משחק שאלות תמחור ביטוח פנסיוני - תרגול לאוניברסיטה</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- מסך פתיחה -->
+        <div id="welcome-screen" class="screen active">
+            <div class="welcome-content">
+                <div class="icon">🎓</div>
+                <h1>חידון תמחור ביטוח פנסיוני</h1>
+                <p>בדוק את הידע שלך בנושא ביטוח פנסיוני בישראל</p>
+                
+                <div class="stats">
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <i class="fas fa-question-circle"></i>
+                            <span>105+ שאלות</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock"></i>
+                            <span>ללא הגבלת זמן</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>הסברים מפורטים</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-trophy"></i>
+                            <span>מעקב ציונים</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-modes">
+                    <h3>בחר מוד משחק:</h3>
+                    <div class="mode-buttons">
+                        <button id="normalModeBtn" class="mode-btn">
+                            <i class="fas fa-play"></i>
+                            <div class="mode-info">
+                                <span class="mode-title">מוד רגיל</span>
+                                <span class="mode-desc">10 שאלות אקראיות</span>
+                            </div>
+                        </button>
+                        <button id="endlessModeBtn" class="mode-btn">
+                            <i class="fas fa-infinity"></i>
+                            <div class="mode-info">
+                                <span class="mode-title">מוד אין סוף</span>
+                                <span class="mode-desc">כל 105 השאלות ברצף</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tips">
+                    <p><strong>💡 טיפ:</strong> קרא בעיון את ההסברים לאחר כל תשובה - הם יעזרו לך ללמוד ולזכור טוב יותר!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- מסך המשחק -->
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill"></div>
+                    </div>
+                    <span id="progress-text">שאלה 1 מתוך 10</span>
+                </div>
+                
+                <div class="score-container">
+                    <i class="fas fa-star"></i>
+                    <span id="score">0</span>
+                </div>
+            </div>
+
+            <div class="question-container">
+                <div class="question-number">
+                    שאלה <span id="current-question-num">1</span>
+                </div>
+                
+                <h2 id="question" class="question-text">
+                    <!-- השאלה תוכנס כאן דינמית -->
+                </h2>
+                
+                <div id="answers" class="answers-container">
+                    <!-- התשובות יוכנסו כאן דינמית -->
+                </div>
+                
+                <!-- הסבר על התשובה הנכונה -->
+                <div id="explanation-container" class="explanation-container" style="display: none;">
+                    <div class="explanation-header">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>הסבר</span>
+                    </div>
+                    <div id="explanation-text" class="explanation-text">
+                        <!-- ההסבר יוכנס כאן דינמית -->
+                    </div>
+                </div>
+                
+                <button id="next-btn" class="primary-btn" style="display: none;">
+                    שאלה הבאה
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- מסך תוצאות -->
+        <div id="results-screen" class="screen">
+            <div class="results-content">
+                <div class="results-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                
+                <h2>המשחק הושלם!</h2>
+                <p id="result-message" class="result-message">🎉 כל הכבוד!</p>
+                
+                <div class="results-stats">
+                    <div class="stat-card">
+                        <i class="fas fa-star"></i>
+                        <div class="stat-info">
+                            <span class="stat-label">הניקוד שלך</span>
+                            <span class="stat-value" id="final-score">0/10</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <i class="fas fa-percentage"></i>
+                        <div class="stat-info">
+                            <span class="stat-label">אחוז הצלחה</span>
+                            <span class="stat-value" id="percentage">0%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button id="restart-btn" class="primary-btn">
+                        <i class="fas fa-redo"></i>
+                        שחק שוב
+                    </button>
+                    <button id="share-btn" class="secondary-btn">
+                        <i class="fas fa-share"></i>
+                        שתף תוצאות
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
