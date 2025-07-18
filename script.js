@@ -15,6 +15,8 @@ const normalModeBtn = document.getElementById('normalModeBtn');
 const endlessModeBtn = document.getElementById('endlessModeBtn');
 const fillInTheBlankBtn = document.getElementById('fillInTheBlankBtn');
 const recommendedModeBtn = document.getElementById('recommendedModeBtn');
+const reformsModeBtn = document.getElementById('reformsModeBtn');
+const conceptsModeBtn = document.getElementById('conceptsModeBtn');
 const questionElement = document.getElementById('question');
 const answersElement = document.getElementById('answers');
 const nextBtn = document.getElementById('next-btn');
@@ -34,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
     endlessModeBtn.addEventListener('click', () => startGame('endless'));
     fillInTheBlankBtn.addEventListener('click', () => startGame('fill-in-the-blank'));
     recommendedModeBtn.addEventListener('click', () => startGame('recommended'));
+    reformsModeBtn.addEventListener('click', () => startGame('reforms'));
+    conceptsModeBtn.addEventListener('click', () => startGame('concepts'));
     nextBtn.addEventListener('click', nextQuestion);
     restartBtn.addEventListener('click', restartGame);
     shareBtn.addEventListener('click', shareResults);
@@ -58,6 +62,14 @@ function startGame(mode) {
             allQuestions = questions.filter(q => q.type === 'fill-in-the-blank');
             allQuestions = shuffleQuestions(allQuestions);
             break;
+       case 'reforms':
+           allQuestions = questions.filter(q => q.category === 'שנים ורפורמות');
+           allQuestions = shuffleQuestions(allQuestions);
+           break;
+       case 'concepts':
+           allQuestions = questions.filter(q => q.category === 'מושגי יסוד');
+           allQuestions = shuffleQuestions(allQuestions);
+           break;
     }
     
     totalQuestions = allQuestions.length;
