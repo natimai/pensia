@@ -3,8 +3,8 @@ let currentQuestionIndex = 0;
 let score = 0;
 let totalQuestions = 10; // ברירת מחדל למוד רגיל
 let usedQuestions = [];
-let gameMode = 'normal'; // 'normal' או 'endless'
-let allQuestions = [...questions]; // עותק של כל השאלות למוד אין סוף
+let gameMode = 'normal'; // 'normal', 'endless', 'fill-in-the-blank', 'recommended'
+let allQuestions = [];
 let answered = false;
 
 // DOM elements
@@ -13,6 +13,8 @@ const gameScreen = document.getElementById('game-screen');
 const resultsScreen = document.getElementById('results-screen');
 const normalModeBtn = document.getElementById('normalModeBtn');
 const endlessModeBtn = document.getElementById('endlessModeBtn');
+const fillInTheBlankBtn = document.getElementById('fillInTheBlankBtn');
+const recommendedModeBtn = document.getElementById('recommendedModeBtn');
 const questionElement = document.getElementById('question');
 const answersElement = document.getElementById('answers');
 const nextBtn = document.getElementById('next-btn');
@@ -30,6 +32,8 @@ const explanationText = document.getElementById('explanation-text');
 document.addEventListener('DOMContentLoaded', function() {
     normalModeBtn.addEventListener('click', () => startGame('normal'));
     endlessModeBtn.addEventListener('click', () => startGame('endless'));
+    fillInTheBlankBtn.addEventListener('click', () => startGame('fill-in-the-blank'));
+    recommendedModeBtn.addEventListener('click', () => startGame('recommended'));
     nextBtn.addEventListener('click', nextQuestion);
     restartBtn.addEventListener('click', restartGame);
     shareBtn.addEventListener('click', shareResults);
@@ -38,16 +42,25 @@ document.addEventListener('DOMContentLoaded', function() {
 function startGame(mode) {
     gameMode = mode;
     
-    if (mode === 'normal') {
-        totalQuestions = 10;
-        usedQuestions = [];
-        // בחירת 10 שאלות אקראיות
-        allQuestions = getRandomQuestions(questions, 10);
-    } else {
-        totalQuestions = questions.length;
-        // כל השאלות ברצף אקראי
-        allQuestions = shuffleArray([...questions]);
+    switch (mode) {
+        case 'recommended':
+            allQuestions = questions.filter(q => q.id >= 110 && (q.type === 'multiple-choice' || !q.type));
+            allQuestions = shuffleQuestions(allQuestions);
+            break;
+        case 'normal':
+            const mcQuestions = questions.filter(q => q.type === 'multiple-choice' || !q.type);
+            allQuestions = getRandomQuestions(mcQuestions, 10);
+            break;
+        case 'endless':
+            allQuestions = shuffleQuestions(questions.filter(q => q.type === 'multiple-choice' || !q.type));
+            break;
+        case 'fill-in-the-blank':
+            allQuestions = questions.filter(q => q.type === 'fill-in-the-blank');
+            allQuestions = shuffleQuestions(allQuestions);
+            break;
     }
+    
+    totalQuestions = allQuestions.length;
     
     currentQuestionIndex = 0;
     score = 0;
@@ -60,42 +73,45 @@ function startGame(mode) {
     updateProgress();
 }
 
-function getRandomQuestions(questionArray, count) {
-    const shuffled = shuffleArray([...questionArray]);
-    return shuffled.slice(0, count);
-}
-
-function shuffleArray(array) {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-}
+// No longer need a separate shuffleArray function, using the one from questions.js
 
 function loadQuestion() {
     if (currentQuestionIndex >= totalQuestions) {
         showResults();
         return;
     }
-    
+
     const question = allQuestions[currentQuestionIndex];
     answered = false;
-    
-    // הסתרת הסבר מהשאלה הקודמת
     explanationContainer.style.display = 'none';
-    
     questionElement.textContent = question.question;
-    
     answersElement.innerHTML = '';
-    question.answers.forEach((answer, index) => {
+    nextBtn.style.display = 'none';
+
+    switch (question.type) {
+        case 'fill-in-the-blank':
+            loadFillInTheBlankQuestion(question);
+            break;
+        case 'multiple-choice':
+        default:
+            loadMultipleChoiceQuestion(question);
+            break;
+    }
+
+    updateProgress();
+}
+
+function loadMultipleChoiceQuestion(question) {
+    // Ensure answers are shuffled for multiple-choice questions
+    const processedQuestion = shuffleAnswers(question);
+
+    processedQuestion.answers.forEach((answer, index) => {
         const answerDiv = document.createElement('div');
         answerDiv.className = 'answer-option';
         
         const answerLetter = document.createElement('div');
         answerLetter.className = 'answer-letter';
-        answerLetter.textContent = String.fromCharCode(65 + index); // A, B, C, D
+        answerLetter.textContent = String.fromCharCode(65 + index);
         
         const answerText = document.createElement('span');
         answerText.textContent = answer;
@@ -103,39 +119,89 @@ function loadQuestion() {
         answerDiv.appendChild(answerLetter);
         answerDiv.appendChild(answerText);
         
-        answerDiv.addEventListener('click', () => selectAnswer(index, question.correct, question.explanation));
+        answerDiv.addEventListener('click', () => selectMultipleChoiceAnswer(index, processedQuestion.correct, processedQuestion.explanation));
         answersElement.appendChild(answerDiv);
     });
-    
-    nextBtn.style.display = 'none';
-    updateProgress();
 }
 
-function selectAnswer(selectedIndex, correctIndex, explanation) {
+function loadFillInTheBlankQuestion(question) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.id = 'fill-in-the-blank-input';
+    input.className = 'fill-in-the-blank-input';
+    input.placeholder = 'הקלד את תשובתך כאן...';
+    
+    const submitBtn = document.createElement('button');
+    submitBtn.textContent = 'בדוק תשובה';
+    submitBtn.className = 'submit-answer-btn';
+    
+    answersElement.appendChild(input);
+    answersElement.appendChild(submitBtn);
+    
+    submitBtn.addEventListener('click', () => {
+        submitFillInTheBlank(input.value, question.answers, question.explanation);
+    });
+    
+    input.addEventListener('keyup', (event) => {
+        if (event.key === 'Enter') {
+            submitFillInTheBlank(input.value, question.answers, question.explanation);
+        }
+    });
+}
+
+function selectMultipleChoiceAnswer(selectedIndex, correctIndex, explanation) {
     if (answered) return;
     answered = true;
-    
+
     const answerOptions = document.querySelectorAll('.answer-option');
-    
+    const isCorrect = selectedIndex === correctIndex;
+
     answerOptions.forEach((option, index) => {
         option.style.pointerEvents = 'none';
         if (index === correctIndex) {
             option.classList.add('correct');
-        } else if (index === selectedIndex && index !== correctIndex) {
+        } else if (index === selectedIndex) {
             option.classList.add('incorrect');
         }
     });
-    
-    if (selectedIndex === correctIndex) {
+
+    if (isCorrect) {
         score++;
         updateScore();
     }
-    
-    // הצגת הסבר
+
     setTimeout(() => {
-        showExplanation(explanation, selectedIndex === correctIndex);
+        showExplanation(explanation, isCorrect);
     }, 800);
-    
+
+    nextBtn.style.display = 'block';
+}
+
+function submitFillInTheBlank(userAnswer, correctAnswers, explanation) {
+    if (answered) return;
+    answered = true;
+
+    const input = document.getElementById('fill-in-the-blank-input');
+    const submitBtn = document.querySelector('.submit-answer-btn');
+    input.disabled = true;
+    submitBtn.disabled = true;
+
+    // Normalize answers for comparison (e.g., trim whitespace, handle case-insensitivity)
+    const normalizedUserAnswer = userAnswer.trim();
+    const isCorrect = correctAnswers.some(answer => normalizedUserAnswer.toLowerCase() === answer.toLowerCase());
+
+    if (isCorrect) {
+        input.classList.add('correct');
+        score++;
+        updateScore();
+    } else {
+        input.classList.add('incorrect');
+    }
+
+    setTimeout(() => {
+        showExplanation(explanation, isCorrect);
+    }, 800);
+
     nextBtn.style.display = 'block';
 }
 
